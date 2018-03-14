@@ -73,7 +73,8 @@ class FriendsState extends State<FriendsPage> {
 
     return new ListTile(
       leading: new CircleAvatar(
-          child: new Text(friendsModel.name[0].toUpperCase())
+        backgroundColor: Colors.grey,
+        backgroundImage: new NetworkImage(friendsModel.profileImageUrl),
       ),
       title: new Text(friendsModel.name,
         style: _biggerFont,
@@ -104,9 +105,12 @@ class FriendsState extends State<FriendsPage> {
         for (var res in data['results']) {
           var objName = res['name'];
           String name = objName['first'].toString() + " " +objName['last'].toString();
-          FriendsModel friendsModel = new FriendsModel(name, res['email']);
+
+          var objImage = res['picture'];
+          String profileUrl = objImage['large'].toString();
+          FriendsModel friendsModel = new FriendsModel(name, res['email'], profileUrl);
           listFriends.add(friendsModel);
-          print(friendsModel.email);
+          print(friendsModel.profileImageUrl);
         }
       }
     } catch (exception) {
@@ -127,6 +131,7 @@ class FriendsState extends State<FriendsPage> {
 class FriendsModel {
   final String email;
   final String name;
+  final String profileImageUrl;
 
-  const FriendsModel(this.name, this.email);
+  const FriendsModel(this.name, this.email, this.profileImageUrl);
 }

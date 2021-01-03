@@ -70,7 +70,7 @@ class FriendsState extends State<FriendsPage> {
     );
   }
 
-  _fetchFriendsList() async {
+  _fetchFriendsList() async { 
     _isProgressBarShown = true;
     var url = 'https://randomuser.me/api/?results=100&nat=us';
     List<FriendsModel> listFriends = new List<FriendsModel>();

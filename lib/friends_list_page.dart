@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter_friends/model/FriendsModel.dart';
+import 'package:http/http.dart' as http;
 
 class FriendsPage extends StatefulWidget {
   FriendsPage({Key key}) : super(key: key);
@@ -11,7 +11,6 @@ class FriendsPage extends StatefulWidget {
 }
 
 class FriendsState extends State<FriendsPage> {
-
   bool _isProgressBarShown = true;
   final _biggerFont = const TextStyle(fontSize: 18.0);
   List<FriendsModel> _listFriends;
@@ -24,27 +23,26 @@ class FriendsState extends State<FriendsPage> {
 
   @override
   Widget build(BuildContext context) {
-
     Widget widget;
 
-    if(_isProgressBarShown) {
+    if (_isProgressBarShown) {
       widget = new Center(
           child: new Padding(
               padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-              child: new CircularProgressIndicator()
-          )
-      );
-    }else {
-      //TODO: search how to stop ListView going infinite list
-      widget =  new ListView.builder(
-          shrinkWrap:true,
-          padding: const EdgeInsets.all(0.0),
-
+              child: new CircularProgressIndicator()));
+    } else {
+      widget = new ListView.builder(
+          physics: BouncingScrollPhysics(),
+          padding: EdgeInsets.zero,
+          itemCount: _listFriends.length,
           itemBuilder: (context, i) {
-            if (i.isOdd) return new Divider();
-            return _buildRow(_listFriends[i]);
-          }
-      );
+            return Column(
+              children: [
+                _buildRow(_listFriends[i]),
+                if (i.isOdd) Divider(),
+              ],
+            );
+          });
     }
 
     return new Scaffold(
@@ -56,45 +54,39 @@ class FriendsState extends State<FriendsPage> {
   }
 
   Widget _buildRow(FriendsModel friendsModel) {
-
     return new ListTile(
       leading: new CircleAvatar(
         backgroundColor: Colors.grey,
         backgroundImage: new NetworkImage(friendsModel.profileImageUrl),
       ),
-      title: new Text(friendsModel.name,
+      title: new Text(
+        friendsModel.name,
         style: _biggerFont,
       ),
       subtitle: new Text(friendsModel.email),
-
       onTap: () {
-        setState(() {
-        });
+        setState(() {});
       },
     );
   }
 
   _fetchFriendsList() async {
-
     _isProgressBarShown = true;
     var url = 'https://randomuser.me/api/?results=100&nat=us';
-    var httpClient = new HttpClient();
-
     List<FriendsModel> listFriends = new List<FriendsModel>();
     try {
-      var request = await httpClient.getUrl(Uri.parse(url));
-      var response = await request.close();
-      if (response.statusCode == HttpStatus.OK) {
-        var json = await response.transform(UTF8.decoder).join();
-        Map data = JSON.decode(json);
-
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
         for (var res in data['results']) {
           var objName = res['name'];
-          String name = objName['first'].toString() + " " +objName['last'].toString();
+          String name =
+              objName['first'].toString() + " " + objName['last'].toString();
 
           var objImage = res['picture'];
           String profileUrl = objImage['large'].toString();
-          FriendsModel friendsModel = new FriendsModel(name, res['email'], profileUrl);
+          FriendsModel friendsModel =
+              new FriendsModel(name, res['email'], profileUrl);
           listFriends.add(friendsModel);
           print(friendsModel.profileImageUrl);
         }
@@ -109,7 +101,6 @@ class FriendsState extends State<FriendsPage> {
       _listFriends = listFriends;
       _isProgressBarShown = false;
     });
-
   }
 }
 
